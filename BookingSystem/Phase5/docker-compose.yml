@@ -1,0 +1,46 @@
+# ONLY DATABASE: docker compose up -d --build database
+# LOGGING: docker logs booking-system-phase5-web -f
+# LOGGING: docker logs booking-system-phase5-db -f
+# CONNECTING TO CONTAINER: docker exec -it booking-system-phase5-web /bin/sh
+# CONNECTING TO CONTAINER: docker exec -it booking-system-phase5-db /bin/sh
+# CONNECTING TO DATABASE: docker exec -it booking-system-phase5-db psql -U booking_dbuser -d booking_db
+# STOPPING WEB: docker stop booking-system-phase5-we
+version: "3.8"
+
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: bs-phase5
+    container_name: booking-system-phase5-web
+    environment:
+      PGHOST: database
+      PGPORT: 5432
+      PGDATABASE: ${PGDATABASE}
+      PGUSER: ${PGUSER}
+      PGPASSWORD: ${PGPASSWORD}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      - database
+
+  database:
+    image: postgres:latest
+    container_name: booking-system-phase5-db
+    environment:
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+      POSTGRES_DB: ${PGDATABASE}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgroot:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d
+
+volumes:
+  pgroot: {}
+
